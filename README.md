@@ -2,23 +2,33 @@
 ### 简介
 利用日常功能测试(实际也调用API)通过代理获取到API的请求与响应信息,将这些请求信息进行流量回放/锲约测试或快速生成用例,
 可通过人工进行修改参数化提取、变量引用、断言等形成API自动化测试用例！
-### 流程图(设计思路)
-~_~`不会画太粗糙了`
-![](app/images/FastTester.jpg)
 
+---
+### 流程图(设计思路)
+ \~_~ `不会画太粗糙了`
+![在这里插入图片描述](https://img-blog.csdnimg.cn/a6396f9d12c74f0ea9211ad2585028e0.png)
+
+---
 ### 快速开始
 
-1.clone：`git clone https://github.com/xxxxxxxxxxxxxxx` **未完成**
+1.clone
+
+ github：`git clone https://github.com/git-gsxl/FastTester.git`
+
+ gitee：`git clone https://gitee.com/qq772262624/FastTester.git`
 
 2.pip install：`pip install -r requirements.txt -i https://pypi.douban.com/simple`
 
 3、demo运行测试：
 
-      cd tests
-      pytest
-      # Windows 可直接运行：`startCollect.cmd`
-![](app/images/run-pytest.png)
+```bash
+cd tests
+pytest
+# Windows 可直接运行：`startCollect.cmd`
+```
+![在这里插入图片描述](https://img-blog.csdnimg.cn/1f7316887a7e4363ba36e557cfc6e7a0.png)
 
+---
 ## 一、接口用例集合获取
 ### 方式一：[Fiddler](https://blog.csdn.net/qq_42675140/article/details/127349890 "Fiddler")
 
@@ -26,31 +36,30 @@
 
 2、更改为符合自己业务领域配置,是项目绝对路径`app`目录,注意要用两个扛`\\`
 
-![fiddler脚本配置.png](app/images/fiddler脚本配置.png "fiddler脚本配置.png")
-
+![在这里插入图片描述](https://img-blog.csdnimg.cn/bef7d987ec8f4f02a97f8dcea3b2aa31.png)
 ### 方式二：[mitmproxy](https://blog.csdn.net/qq_42675140/article/details/125128261 "mitmproxy")
-
 1、将项目下`utils/httpCat/config.ini`过滤域名改为自己需要配置的域名以及业务领域
 
-![](app/images/mitmproxy域名过滤配置.png)
+![在这里插入图片描述](https://img-blog.csdnimg.cn/04bafc7e55964aa9a22909fa4c34f19e.png)
 
 2、需要配置代理证书等,详看[mitmproxy使用文档](https://blog.csdn.net/qq_42675140/article/details/125128261 "mitmproxy使用文档")
 
 3、运行文件：`startCollect.cmd`
-
 `如出现报错请检查 pip install -r requirements.txt 是否已安装？` 或 `pip install mitmproxy==5.0.0`
 
 ### 结合以上两种方式
 1、你会得到：xxx.txt 文件
 
-![txt文件](app/images/txt.png "txt文件")
+![在这里插入图片描述](https://img-blog.csdnimg.cn/2657de42f56a47acae9eaf257c15e6d1.png)
 
 2、如需要用例入库,则执行命令行：
-
-      cd test
-      pytest --red_txt=true
+```shell
+cd test
+pytest --red_txt=true
+```
 另外可能需要进行数据库连接配置`model/dbBase.py`,默认为`sqlite`
 
+---
 ## 二、执行测试
 命令行参数说明(部分可在pytest.ini下默认配置),与pytest框架一致,并且新增以下参数：
 1) --env：查询业务领域=ppl及环境=test的用例
@@ -85,12 +94,14 @@
       4）方式4：相对路径指定文件：pytest --file=./fiddler_2022-7-31.txt
       
 ### 方式2：经过用例入库,执行db用例测试 
-      cd tests
-      pytest test_playback.py --env=domain,env --param={\"version\":\"1.0.1\"}
+```shell
+cd tests
+pytest test_playback.py --env=domain,env --param={\"version\":\"1\"}
+```
+  ps：Windows可以默认ini参数直接一键运行并生成报告：testStart.cmd
+  (支持替换变量,存储变量,引用变量,响应断言)
 
-      ps：Windows可以默认ini参数直接一键运行并生成报告：testStart.cmd
-      (支持替换变量,存储变量,引用变量,响应断言)
-
+---
 ## 三、后置处理器介绍：http_collect
 参数提取器,默认是取第1个值(支持提取response与headers接口的返参)
 Jsonpath语法请参考：https://goessner.net/articles/JsonPath
@@ -116,6 +127,7 @@ Jsonpath语法请参考：https://goessner.net/articles/JsonPath
 
 2）获取正则表达式的值并命名为env及取第n个值：`[{'re':['env','http://(.+?)/', -1]}] ----> {'name':'value'}`
 
+---
 ## 四、断言使用介绍：http_assert
 #### 1.Jsonpath 断言
 1.字符在里面：["msgId"]
@@ -146,6 +158,7 @@ Jsonpath语法请参考：https://goessner.net/articles/JsonPath
 #### 2.正则表达式断言
 1.直接写正则表达式即可,如：`[{'re':'http://(.+?)/'}]`
    
+   ---
 ## 五、变量引用
 使用本系统且遵循Faker语法直接引用：${Faker语法}
 
@@ -221,9 +234,11 @@ Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/local
 5）街道地址：${street_address}
 `武汉街D座`
 
+---
 ## 六、数据库config配置说明
 默认使用`sqlite`,一般只需要连接`sqlite`更改`1、账号环境配置`信息即可
-![txt文件](app/images/db_config.png "txt文件")
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/8334b9dc56b0470eb2b85b2dd499d829.png)
 ### 1.账号环境配置
       1) gray：默认就好,一般会使用如：AB测试模型使用,定制化区分环境
       2) Tester：登录获取token或cookie初始化,可配置多个登录信息,如下有两种例子：
