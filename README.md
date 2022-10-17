@@ -237,7 +237,7 @@ Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/local
 
 ---
 ## 六、数据库config配置说明
-默认使用`sqlite`,一般只需要连接`sqlite`更改`1、账号环境配置`信息即可
+默认使用`sqlite`,一般只需要连接`sqlite`更改`下面 1 账号环境配置`信息即可
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/8334b9dc56b0470eb2b85b2dd499d829.png)
 ### 1.账号环境配置
