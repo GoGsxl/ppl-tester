@@ -147,18 +147,19 @@ Jsonpath语法请参考：https://goessner.net/articles/JsonPath
 
 3.字符在里面or其它：[{"msgId":["123456","in"]}]   `注：in 可以是== != not in`
 
-   `assert 123456 in response.get('msgId')`
+      `assert 123456 in response.get('msgId')`
 
    
 4.长度：1 == len(response.get('msgId'))：[{"msgId":[1,"len"]}]
    
-   `assert 1 == len(response.get('msgId'))`
+      `assert 1 == len(response.get('msgId'))`
    
 
 #### 2.正则表达式断言
 1.直接写正则表达式即可,如：`[{'re':'http://(.+?)/'}]`
    
-   ---
+
+---
 ## 五、变量引用
 使用本系统且遵循Faker语法直接引用：${Faker语法}
 
