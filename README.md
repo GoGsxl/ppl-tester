@@ -60,7 +60,7 @@ pytest
 2、如需要用例入库,则执行命令行：
 ```shell
 cd test
-pytest --red_txt=true
+pytest --read_txt=true
 ```
 另外可能需要进行数据库连接配置`model/dbBase.py`,默认为`sqlite`
 
@@ -76,9 +76,9 @@ pytest --red_txt=true
 3) --file：读取app目录下所有txt文件进行流量回放,详细使用看流量回放
    
          如：--file=true                
-4) --red_txt：读取txt文件进行用例入库
+4) --read_txt：读取txt文件进行用例入库
    
-         如：--red_txt=true        
+         如：--read_txt=true        
 5) --init：db表结构初始化,一般不需要用到
    
          如：--init=true

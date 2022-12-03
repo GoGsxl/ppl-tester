@@ -12,19 +12,19 @@ def pytest_addoption(parser):
     help_txt = 'choose env: --env domain,env'
     help_txt1 = 'choose file: --file 1'
     help_txt2 = 'choose param: --param {"a":"master"}'
-    help_txt3 = 'choose red_txt: --red_txt false'
+    help_txt3 = 'choose read_txt: --read_txt false'
     help_txt4 = 'choose init: --init false'
     help_txt5 = 'choose key: --key xxx'
     parser.addoption("--env", action="store", help=help_txt)
     parser.addoption("--file", action="store", help=help_txt1)
     parser.addoption("--param", action="store", help=help_txt2)
-    parser.addoption("--red_txt", action="store", help=help_txt3)
+    parser.addoption("--read_txt", action="store", help=help_txt3)
     parser.addoption("--init", action="store", help=help_txt4)
     parser.addoption("--key", action="store", help=help_txt5)
     parser.addini('env', help=help_txt)
     parser.addini('file', help=help_txt1)
     parser.addini('param', help=help_txt2)
-    parser.addini('red_txt', help=help_txt3)
+    parser.addini('read_txt', help=help_txt3)
     parser.addini('init', help=help_txt4)
     parser.addini('key', help=help_txt5)
 
@@ -35,7 +35,7 @@ def env_vars(metafunc):
     cur_env = config.getoption('--env') or config.getini('env')
     cur_param = config.getoption('--param') or config.getini('param')
     file_env = config.getoption('--file') or config.getini('file')
-    red_txt = config.getoption('--red_txt') or config.getini('red_txt')
+    read_txt = config.getoption('--read_txt') or config.getini('read_txt')
     init = config.getoption('--init') or config.getini('init')
     key = config.getoption('--key') or config.getini('key')
     variables, conf, inifile = {}, ConfigParser(), config.inifile
@@ -44,7 +44,7 @@ def env_vars(metafunc):
     if cur_env:variables['env'] = cur_env
     if cur_param:variables['param'] = cur_param
     if file_env:variables['file'] = file_env
-    if red_txt:variables['red_txt'] = red_txt
+    if read_txt:variables['read_txt'] = read_txt
     if init:variables['init'] = init
     if init:variables['key'] = key
     # 获取当前运行的test_*.py文件
@@ -102,7 +102,7 @@ def pytest_generate_tests(metafunc):
     variables = env_vars(metafunc)
     file_path = variables.pop('file', None)
     param = loads(variables.pop('param', None))
-    red_txt = variables.pop('red_txt', None)
+    read_txt = variables.pop('read_txt', None)
     key = variables.pop('key', None)
     # 判断是否创建初始化数据库表结构
     init = variables.pop('init', None)
@@ -115,7 +115,7 @@ def pytest_generate_tests(metafunc):
     if not file_path:
         # 判断是否先读取txt文件用例入库
         proj_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if red_txt == 'true':   # 用例入库
+        if read_txt == 'true':   # 用例入库
             msg = app_txt_for(dir_path=os.path.join(proj_path, 'app'), key=key)
             pytest.exit(f'-----------------> {msg} <-----------------', returncode=1)
         # 切割 env 参数，db查询环境配置
