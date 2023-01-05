@@ -2,7 +2,6 @@ import pytest
 import requests, time, re, traceback
 from loguru import logger as log
 from faker import Faker
-from hyper.contrib import HTTP20Adapter
 from utils.jsonSchema import *
 from model.models import *
 
@@ -56,11 +55,6 @@ class Http:
         # method url
         method = request_data.pop('method', None)
         url = request_data.pop('url', None)
-        # compatible with http2
-        try:
-            host, path, query, uri = self.http_split_url(url)
-            self.s.mount(host, HTTP20Adapter())
-        except: pass
         # request body -->data?-->json
         body = request_data.pop('body', None)
         if isinstance(body, str): request_data['data'] = body.encode('utf-8')
