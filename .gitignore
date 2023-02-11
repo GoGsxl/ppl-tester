@@ -1,7 +1,0 @@
-# Other files and folders
-.idea
-./venv
-**/report
-**/.pytest_cache
-**/__pycache__
-./requirements.txt

@@ -1,0 +1,13 @@
+{
+  "api/user/info": {
+    "bool": "${pybool}",
+    "name": "${name}",
+    "int": "${pyint}",
+    "float": "${pyfloat(0,1)}",
+    "data|1-3": [
+      {
+        "name": "${name}"
+      }
+    ]
+  }
+}

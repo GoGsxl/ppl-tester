@@ -1,95 +1,164 @@
-# FastTester： 快速生成测试用例进行测试
+# PPL-Tester
 ### 简介
-利用日常功能测试(实际也调用API)通过代理获取到API的请求与响应信息,将这些请求信息进行流量回放/锲约测试或快速生成用例,
-可通过人工进行修改参数化提取、变量引用、断言等形成API自动化测试用例！
+http工具集,通过代理获取到API的请求与响应信息,将这些请求信息进行流量回放/锲约测试或快速生成用例, 亦可通过人工进行修改参数化提取、变量引用、断言等形成API自动化测试用例等！
+你以为只是流量回放吗？错~走去瞧瞧！
 
-**项目地址：** 看官~请记得给个**star**呗？
+看官~请记得给个**star**呗？
+**项目地址：** 
 
  [github](https://github.com/git-gsxl/FastTester.git)  
  [gitee](https://gitee.com/qq772262624/FastTester.git)
 
 ---
-### 流程图(设计思路)
- \~_~ `不会画太粗糙了`
-![在这里插入图片描述](https://img-blog.csdnimg.cn/a6396f9d12c74f0ea9211ad2585028e0.png)
+# 功能介绍
+#### 流程图 (简陋ing···)
+![ppl-tester](./desc/ppl-tester.jpg)
 
----
-### 快速开始
+    ps：
+    1、作者 Windows exe 运行,其它系统可自行打包或以 Python ppl x 执行.
+    2、运行程序需要在项目根目录下运行...
 
-1.clone
-
- github：`git clone https://github.com/git-gsxl/FastTester.git`
-
- gitee：`git clone https://gitee.com/qq772262624/FastTester.git`
-
-2.pip install：`pip install -r requirements.txt -i https://pypi.douban.com/simple`
-
-3、demo运行测试：
-
-```bash
-cd tests
-pytest
-# Windows 可直接运行：`startCollect.cmd`
+需要安装Python3环境及依赖库:
+```shell
+pip install -r requirements.txt
 ```
-![在这里插入图片描述](https://img-blog.csdnimg.cn/1f7316887a7e4363ba36e557cfc6e7a0.png)
+
+## 1、proxy http
+    
+    command: ppl.exe f   (python ppl.py f)
+        2023-01-20 10:39:53.628 | INFO     | __main__:cmd:37 - run:http flows cat. exit:Ctrl+C
+        2023-01-20 10:39:53.642 | INFO     | utils.flows:cat_mock_load:25 - loaded mock*.json match to will mock！
+        2023-01-20 10:39:53.644 | INFO     | utils.flows:__init__:114 - Proxy server listening at http://0.0.0.0:8888
+![proxy-http](./desc/proxy-http.png)
+
+基本代理等使用请参阅博文：[点击跳转](https://blog.csdn.net/qq_42675140/article/details/125128261 "PPL")
+
+官方文档：https://docs.mitmproxy.org/stable
+
+中文文档：https://ptorch.com/docs/10/mitmproxy_introduction
 
 ---
-## 一、接口用例集合获取
-### 方式一：[Fiddler](https://blog.csdn.net/qq_42675140/article/details/127349890 "Fiddler")
+## 2、mock http response
+可对 response 进行mock！
 
-1、将项目下`utils/httpCat/fiddler.txt`复制文本粘贴,FiddlerScript
+### 2.1 配置 config.ini
+
+    mock = ON
+        mock ON ：开启mock
+        mock OFF：关闭mock
+    mode = ON
+        mode ON ：向远程服务器发送任何数据，且根据mock数据交集返回数据从而响应
+        mode OFF：不向远程服务器发送任何数据
+
+### 2.2 mock文件格式：mock*.json 
+
+### 2.3 随机参数引用格式：${faker}
+    
+    结合 faker 的方法进行随机模式,文档请参考：https://faker.readthedocs.io/en/master/providers/faker.providers.python.html
+    mock demo：
+    {
+      "api/user/info": {
+        "bool": "${pybool}",
+        "name": "${name}",
+        "int": "${pyint}",
+        "float": "${pyfloat(0,1)}",
+        "data|1-3": [
+          {
+            "name": "${name}"
+          }
+        ]
+      }
+    }
+mock demo 输出
+![mock demo 输出](./desc/flows-mock.png)
+
+---
+## 3、http flows replace
+request 正则替换支持替换(headers url body cookie)
+
+    replace = {"pattern":"value","pattern1":"value1"}
+    使用场景:
+        1.鉴权：将 token 设置为空,如：
+            replace = {"old token xxx":""}
+        2.越权：将 token 设置为另用户token,越权又分为①水平越权(同角色)②垂直越权(向上级),如：
+            replace = {"old token xxx":"new token xxx"}
+        3.流量转发, 将test环境的前端去访问正式环境的数据(前端问题复现)
+            {"old host":"new host"}
+        PS：因前端本就发出 old host 请求,所以前端看到请求还是 old host 但真实是请求到 new host.
+
+## 4、https证书过期检测
+config.ini -> check_ssl hosts
+    
+    check_ssl = app.xxx.com,web.xxx.com
+    command:
+        ppl.exe s
+---
+## 5、api playback
+### 5.1 接口用例集合获取
+#### 方式1：[Fiddler](https://blog.csdn.net/qq_42675140/article/details/127349890 "Fiddler")
+
+1、将项目下`desc/fiddler.txt`复制文本粘贴,FiddlerScript
 
 2、更改为符合自己业务领域配置,是项目绝对路径`app`目录,注意要用两个扛`\\`
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/bef7d987ec8f4f02a97f8dcea3b2aa31.png)
-### 方式二：[mitmproxy](https://blog.csdn.net/qq_42675140/article/details/125128261 "mitmproxy")
-1、将项目下`utils/httpCat/config.ini`过滤域名改为自己需要配置的域名以及业务领域
+#### 方式2(推荐)：[mitmproxy](https://blog.csdn.net/qq_42675140/article/details/125128261 "mitmproxy")
+1、将项目下`config.ini`过滤域名改为自己需要配置的域名以及业务领域,**如果填写db_url则流量信息直接入库**
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/04bafc7e55964aa9a22909fa4c34f19e.png)
+![flows-config](./desc/flows-config.png)
 
 2、需要配置代理证书等,详看[mitmproxy使用文档](https://blog.csdn.net/qq_42675140/article/details/125128261 "mitmproxy使用文档")
 
-3、运行文件：`startCollect.cmd`
-`如出现报错请检查 pip install -r requirements.txt 是否已安装？` 或 `pip install mitmproxy==5.0.0`
+3、运行
+    
+    command:
+        ppl.exe f
+![flows-run](./desc/flows-run.png)
 
-### 结合以上两种方式
-1、你会得到：xxx.txt 文件
-
-![在这里插入图片描述](https://img-blog.csdnimg.cn/2657de42f56a47acae9eaf257c15e6d1.png)
+#### 以上方式1及方式2 会得到txt文件 或直接入库
+如果基于方式2(mitmproxy),配置db_url可直接流量入库回放测试.
+![flows-db](./desc/flows-db.png)
+1、你会得到：./data/api-xxx.txt 或 fiddler-xxx.txt
 
 2、如需要用例入库,则执行命令行：
 ```shell
-cd test
-pytest --read_txt=true
+ppl.exe --play=0
 ```
-另外可能需要进行数据库连接配置`model/dbBase.py`,默认为`sqlite`
+另外可能需要进行数据库连接配置`./config.ini.db_url`,默认为`sqlite`
+
+mysql:`db_url = mysql+pymysql://root:123456@127.0.0.1:3306/tester?charset=utf8`
+
+数据迁移:`ppl.exe --move=new_db_url`
 
 ---
-## 二、执行测试
+### 5.2 执行测试
 命令行参数说明(部分可在pytest.ini下默认配置),与pytest框架一致,并且新增以下参数：
 1) --env：查询业务领域=ppl及环境=test的用例
    
-         如：--env=ppl,test                
+         如：--env=ppl,test   
+   
 2) --param：附加将version参数替换为1或追加
    
-         如：--param={\"version\":\"1\"}
+         如(Windows)：--param={\"version\":\"1\"}
+   
 3) --file：读取app目录下所有txt文件进行流量回放,详细使用看流量回放
    
-         如：--file=true                
-4) --read_txt：读取txt文件进行用例入库
+         如：--file=1
    
-         如：--read_txt=true        
+4) --play：读取txt文件进行用例入库
+         如：--play=0  
+   
+         0：读取txt用例入库
+         1：读取db用例进行回放测试
+         2：读取txt文件流量回放
+         3: 读取阿里云日志流量并入库
+   
 5) --init：db表结构初始化,一般不需要用到
-   
-         如：--init=true
-6) --key：企微或钉钉群推送的key
-            
-         如：--key=xxxx
+         如：--init=1
 
-### 方式1：流量回放,只回放API响应码为200
+#### 方式1：txt文件流量回放
+` ps：不支持下载/上传文件回放,不要将txt文件换行或格式变化哦(只回放API响应码为200)`
 
-      cd tests
-      
       1）方式1：默认为app目录下全部txt文件(以下2-3不存在文件时亦是)：pytest --file=1
       
       2）方式2：指定app目录下的文件：pytest --file=fiddler_2022-7-31.txt
@@ -98,19 +167,24 @@ pytest --read_txt=true
       
       4）方式4：相对路径指定文件：pytest --file=./fiddler_2022-7-31.txt
       
-### 方式2：经过用例入库,执行db用例测试 
-```shell
-cd tests
-pytest test_playback.py --env=domain,env --param={\"version\":\"1\"}
-```
-  ps：Windows可以默认ini参数直接一键运行并生成报告：testStart.cmd
-  (支持替换变量,存储变量,引用变量,响应断言)
+#### 方式2：经过用例入库,执行db用例测试 
+需要先配置 pytest.ini(推荐) 或 config db在进行运行.
 
+详情查看 5.6 db或pytest config说明.
+
+配置pytest.ini,作用与db用例映射执行对应环境测试.
+![pytest-config](./desc/pytest-config.png)
+```shell
+ppl.exe --env=domain,env --param={\"version\":\"1\"}
+```
+`ps：Windows可以生成allure报告：ppl.exe r
+(支持替换变量,存储变量,引用变量,响应断言)`
 ---
-## 三、后置处理器介绍：http_collect
+
+### 5.3 后置处理器介绍：http_collect
 参数提取器,默认是取第1个值(支持提取response与headers接口的返参)
 Jsonpath语法请参考：https://goessner.net/articles/JsonPath
-### 1.Jsonpath 区分大小写
+#### 1.Jsonpath 区分大小写
 
 1）获取key的值：`['key'] ---->  {'key':'value'}`
 
@@ -127,58 +201,55 @@ Jsonpath语法请参考：https://goessner.net/articles/JsonPath
 7）原生Jsonpath语法并指定取第n个：`[{'$.data.key':n}] ---->  {'key':values[n]}`
 
 8）原生Jsonpath语法并重新命名及指定取第n个：`[{'$.data.key':['name',n]}] ---->  {'name':values[n]}`
-### 2.正则表达式
+#### 2.正则表达式
 1）获取正则表达式的值并命名为env：`[{'re':['env','http://(.+?)/']}] ---->  {'env':'value'}`
 
 2）获取正则表达式的值并命名为env及取第n个值：`[{'re':['env','http://(.+?)/', -1]}] ----> {'name':'value'}`
 
 ---
-## 四、断言使用介绍：http_assert
-#### 1.Jsonpath 断言
+### 5.4 断言使用介绍：http_assert
+##### 1.Jsonpath 断言
 1.字符在里面：["msgId"]
    
       `实际为：assert "msgId" in response.text`
-
    
 2.变量在里面：["${msgId}"]
 
     `实际为：assert "${msgId}" in response.text`
 
-
 2.字符相等：[{"msgId":"123456"}]
 
     `实际为：assert 123456 == json_path(result.json(), 'msgId')`
-
 
 3.字符在里面or其它：[{"msgId":["123456","in"]}]   `注：in 可以是== != not in`
 
       `assert 123456 in response.get('msgId')`
 
-   
 4.长度：1 == len(response.get('msgId'))：[{"msgId":[1,"len"]}]
    
       `assert 1 == len(response.get('msgId'))`
-   
 
-#### 2.正则表达式断言
+##### 2.正则表达式断言
 1.直接写正则表达式即可,如：`[{'re':'http://(.+?)/'}]`
-   
 
 ---
-## 五、变量引用
+### 5.5 变量引用(参数化关联)
 使用本系统且遵循Faker语法直接引用：${Faker语法}
 
 ppl_开头,为自定义生成数据方法
 
 Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/locales/zh_CN.html#faker-providers-address
+![pytest-run](./desc/pytest-run.png)
+字段数据结构及解释,亦可查阅代码model：
+![data-word](./desc/data-word.png)
 
-### 1.号码相关：
+#### 1.号码相关：
 1）手机号：${phone_number}
 `18520149907`
 
 2）身份证号码：${ssn}
 `410622198603154708`
-### 2.时间日期相关
+#### 2.时间日期相关
 1）当前日期时间：${ppl_now_datetime}
 `2022-07-02 12:56:58`
 
@@ -209,7 +280,7 @@ Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/local
 10）过去的日期时间：${past_datetime(end_date=-7d)}
 `2022-06-29 13:29:20`
 
-### 3.名字相关：
+#### 3.名字相关：
 1）姓名：${name}
 `王凯`
 
@@ -224,7 +295,7 @@ Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/local
 
 5）名字：${first_name}
 `强`
-### 4.地址相关
+#### 4.地址相关
 1）地址：${address}
 `香港特别行政区大冶县上街钟街k座 664713`
 
@@ -241,67 +312,73 @@ Faker 更多请查阅官方文档：https://faker.readthedocs.io/en/stable/local
 `武汉街D座`
 
 ---
-## 六、数据库config配置说明
-默认使用`sqlite`,一般只需要连接`sqlite`更改`下面 1 账号环境配置`信息即可
+### 5.6 db或pytest config说明
+使用`pytest.ini`.`tester`配置 或 db config表配置,配置一种即可。
+推荐使用pytest.ini
+#### 账号环境配置
+    
+    1、pytest.ini 例子(需要压缩json,不可格式化)
+        [test]
+        tester = {"gray":"gray","Tester":[{"https://blog.csdn.net":{"url":"/qq_42675140","body":{},"method":"GET","collects":["ppl_cookie"]}},{"http://open-ppl-getaway.com":{"Authorization":"Bearer ","key":"nf9vMghQLyEZkeyxxxxx0ln9klsPz","secret":"ylJhZzwvaa2NxxxsecretlDtNsJSyMh"}}],"filter_code":{},"filter_path":["/user/logout","/user/login"]}
+          
+      [test]：表示定义的环境 test,可以多个.
+      tester：pytest 账号登录/过滤等配置
+          1) gray：默认gray就好,一般用于AB测试模型则需要配置.
+          2) Tester：登录获取token或cookie初始化,可配置多个登录信息
+                collects：表示后置处理器 collect (使用详细查看第三点[后置处理器使用]),用例提取token或cookie作为登录态
+          3) filter_code：过滤某些接口响应内容,可不写
+          4) filter_path：过滤某些接口url,一般用于过滤登录及退出登录以免执行测试时影响登录态
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/8334b9dc56b0470eb2b85b2dd499d829.png)
-### 1.账号环境配置
-      1) gray：默认就好,一般会使用如：AB测试模型使用,定制化区分环境
-      2) Tester：登录获取token或cookie初始化,可配置多个登录信息,如下有两种例子：
-            collects：表示后置处理器 collect (使用详细查看第三点),用例提取token或cookie作为登录态
-      {
-          "gray":"gray",
-          "Tester":[
-              {
-                  "https://app-xxx.com":{
-                      "url":"api/user/login",
-                      "json":{
-                          "mobile":18888888888,
-                          "Password":"mVs6NwvIFRgN0aaUo4KZOiW9QZWbKZjqVX1eW9Gr2s4rgZ5atS3ppY39ZlyE37Tb2/zo6YWJV6VJV="
-                      },
-                      "method":"POST",
-                      "collects":["clienttoken"]}
-              },
-              {
-                  "https://web-xxx.com":{
-                      "url":"/api/index.php?r=data/login",
-                      "data":"user=admin&password=4076f862096d1536b6cac6866e386655=",
-                      "method":"POST",
-                      "headers":{"content-Type":"application/x-www-form-urlencoded"},
-                      "collects":["ppl_cookie"]
-                  }
-              }
-          ]
-      }
-### 2.默认配置 (domain=default)
-      1) filter_path：过滤path为列表的,如登录/退出登录接口
-      2) filter_code：根据返回retCode字段,判断是否=0或='0',是则数据符合,否则跳过该数据
-      3) re_list：一般不需要使用,如AB测试模型时,则根据业务情况配置从response(uri/body/header)中正则匹配
-      4) db_pop：获取用例过滤：数据库字段转dict,去除非必要的字段,默认就好
-      5) filter_headers：过滤不必要的headers,默认就好
-      6) split_url_handle：path不需要特殊处理可默认,一般php接口可能需要处理,如下
-            例子："split_url_handle":{".php":"path + '?r=' + query.pop('r')"}
-            表示：如果'.php'在path中,则运行path=eval("path+'?r='+query.pop('r')"
-       {
-           "filter_path":[
-               "/user/logout",
-               "/user/login"
-           ],
-           "filter_code":{"retCode":[ 0, "0" ]},
-           "re_list":[],
-           "db_pop":[
-               "id","curl","response",
-               "_sa_instance_state",
-               "create_time","update_time"
-           ],
-           "filter_headers":[
-               "content-length","accept-encoding","host","user-agent","accept",
-               "origin","referer","sec-ch-ua","connection","sec-fetch-dest",
-               "sec-fetch-mode","sec-fetch-site","pragma","accept-language",
-               "sec-ch-ua-mobile","sec-ch-ua-platform","postman-token",
-               "cache-control","x-requested-with","accept-encoding"
-           ],
-           "split_url_handle":{}
-       }
+    2、db config如下例子, 直接复制粘贴保存即可(可格式化)：
+    {
+        "gray":"gray",
+        "Tester":[
+            {
+                "https://app-xxx.com":{
+                    "url":"/api/user/login",
+                    "json":{
+                        "mobile":18888888888,
+                        "Password":"mVs6NwvIFRgN0aaUo4KZOiW9QZWbKZjqVX1eW9Gr2s4rgZ5atS3ppY39ZlyE37Tb2/zo6YWJV6VJV="
+                    },
+                    "method":"POST",
+                    "collects":[
+                        "clienttoken"
+                    ]
+                }
+            },
+            {
+                "https://web-xxx.com":{
+                    "url":"/api/index.php?r=data/login",
+                    "data":"user=admin&password=4076f862096d1536b6cac6866e386655=",
+                    "method":"POST",
+                    "headers":{
+                        "content-Type":"application/x-www-form-urlencoded"
+                    },
+                    "collects":[
+                        "ppl_cookie"
+                    ]
+                }
+            }
+        ],
+        "filter_code":{
+            "$response_key":[
+                200,
+                "200"
+            ]
+        },
+        "filter_path":[
+            "/api/user/logout",
+            "/api/user/login"
+        ]
+    }
+### 5.7 mysql等断言
+待开发
 
-## 如有建议/疑问请联系我：https://blog.csdn.net/qq_42675140
+## 6、web页面管理用例等
+待开发
+
+## 7、flows客户端,集成以上功能...
+待开发
+
+### 如有建议/疑问请联系我：https://blog.csdn.net/qq_42675140
+![WeChat](./desc/WeChat.png)
