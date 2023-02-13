@@ -179,6 +179,7 @@ ppl.exe --env=domain,env --param={\"version\":\"1\"}
 ```
 `ps：Windows可以生成allure报告：ppl.exe r
 (支持替换变量,存储变量,引用变量,响应断言)`
+
 ---
 
 ### 5.3 后置处理器介绍：http_collect
