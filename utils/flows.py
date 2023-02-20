@@ -13,16 +13,14 @@ class PPLMock:
         self.faker = self.h.faker
         self.conf = read_config()
 
-    def cat_mock_load(self, mock: str):
+    def cat_mock_load(self):
         """ Load mock*.json file """
-        if mock != 'on': return self.logs.info('mock not open')
         pwd, dict_mock = os.getcwd(), {}
         files = [os.path.join(pwd, file) for file in os.listdir(path=pwd) if 'mock' in file and '.json' in file]
-        if not files: return self.logs.info('not mock*.json no mock！')
+        if not files: return self.logs.warning('not mock*.json no mock！')
         for file in files:
             dict_data = loads('', file)
             dict_mock.update(dict_data)
-        self.logs.info('loaded mock*.json match to will mock！')
         return dict_mock
 
     def cat_mock_range(self, mock_response, record_mock_response=None):
@@ -97,24 +95,40 @@ class PPLMock:
         if not mock_data: return None, path
         mock_data = self.cat_mock_faker(mock_data)
         str_mock_data = dumps(mock_data)
-        self.logs.info(f'mock response hit：{path} \nmock response：{str_mock_data}')
+        self.logs.warning(f'mock response hit：{path} \nmock response：{str_mock_data}')
         return str_mock_data, path
 
 
 class PPLFlow:
 
     def __init__(self, http_obj, host, port):
-        self.h, self.p = PPLMock(http_obj), Playback(http_obj)
+        http_obj.logs.warning(f'Proxy server listening at http://{host}:{port}')
+        self.http_obj = http_obj
+        self.h, self.p = None, None
+        self.hosts, self.domain = None, None
+        self.db_url, self.mode = None, None
+        self.codes, self.mock = None, self.http_obj.conf.get('mock')
+        self.replace, self.addr_domain = None, None
+        self.skip, self.filter = None, None
+        self.write_db, self.write, self.all_write = None, None, None
+        self.lastMock = self.mock
+        if self.mock == 'on': http_obj.logs.warning('loaded mock*.json match to will mock')
+        elif self.mock != 'on': http_obj.logs.warning('mock not open')
+
+    def init(self):
+        self.h, self.p = PPLMock(self.http_obj), Playback(self.http_obj)
         self.hosts, self.domain = self.h.conf.get('hosts'), self.h.conf.get('domain', 'ppl')
         self.db_url, self.mode = self.h.conf.get('db_url'), self.h.conf.get('mode')
         self.codes, self.mock = self.h.conf.get('codes'), self.h.conf.get('mock')
         self.replace, self.addr_domain = self.h.conf.get('replace'), self.h.conf.get('addr_domain')
         self.skip, self.filter = self.h.conf.get('skip'), self.h.conf.get('filter')
-        self.all_mock_dict = self.h.cat_mock_load(self.mock)
-        self.h.logs.info(f'Proxy server listening at http://{host}:{port}')
         self.write_db, self.write, self.all_write = True, True, True
+        if self.mock == 'on' and self.lastMock != self.mock: self.h.logs.warning('loaded mock*.json match to will mock')
+        elif self.mock != 'on' and self.lastMock != self.mock: self.h.logs.warning('mock not open')
+        self.lastMock = self.mock
 
     def request(self, flow: HTTPFlow):
+        self.init()
         if flow.request.host in self.hosts:
             # pattern replace:request all (host headers path body cookie)
             if isinstance(self.replace, dict) and self.replace and flow.request.path not in self.filter:
@@ -133,8 +147,9 @@ class PPLFlow:
             except: res_response = 'response error: utf-8 codec can‘t decode byte'
             if self.mock == 'on':
                 # Get mock data
-                if self.all_mock_dict:
-                    mock_data, path = self.h.cat_mock_response(url, self.all_mock_dict)
+                all_mock_dict = self.h.cat_mock_load()
+                if all_mock_dict:
+                    mock_data, path = self.h.cat_mock_response(url, all_mock_dict)
                     mock_data_dict = loads(mock_data)
                     # Send a reply from the proxy without sending any data to the remote server.
                     if self.mode == 'off' and mock_data:
