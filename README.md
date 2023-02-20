@@ -39,7 +39,7 @@ pip install -r requirements.txt
 
 ---
 ## 2、mock http response
-可对 response 进行mock！
+可对 response 进行mock！实时加载mock文件.
 
 ### 2.1 配置 config.ini
 
@@ -55,6 +55,7 @@ pip install -r requirements.txt
 ### 2.3 随机参数引用格式：${faker}
     
     结合 faker 的方法进行随机模式,文档请参考：https://faker.readthedocs.io/en/master/providers/faker.providers.python.html
+    注意不可以 mock 登录 token 哦！！！
     mock demo：
     {
       "api/user/info": {
@@ -177,9 +178,12 @@ mysql:`db_url = mysql+pymysql://root:123456@127.0.0.1:3306/tester?charset=utf8`
 ```shell
 ppl.exe --env=domain,env --param={\"version\":\"1\"}
 ```
+可选参数：--env=domain,env,host
+
+host: 表示指定查询的域名用例,不指定则按照配置获取.
+
 `ps：Windows可以生成allure报告：ppl.exe r
 (支持替换变量,存储变量,引用变量,响应断言)`
-
 ---
 
 ### 5.3 后置处理器介绍：http_collect

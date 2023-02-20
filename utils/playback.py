@@ -345,11 +345,12 @@ class Playback:
             else: return_data = data
         return return_data
 
-    def pytest_get_data(self, param, tester, domain):
+    def pytest_get_data(self, param, tester, domain, cases_host=None):
         """ get testcases
         :param param: param
         :param tester: ini or db tester
         :param domain: domain
+        :param cases_host: host cases
         """
         tester = tester if isinstance(tester, dict) else tester.Tester
         add_replace_dict, replace_dict, cookie, open_header = {}, {}, {}, {}
@@ -361,6 +362,7 @@ class Playback:
         testers, db_all_obj, cases, paths, hosts, gray = tester.get('Tester'), [], [], [], [], tester.get('gray')
         for test in testers:
             for host, value in test.items():
+                if cases_host and cases_host != host: break
                 hosts.append(host)
                 db_data = self.db_select(host, domain, gray=gray)
                 if not db_data:
@@ -446,11 +448,12 @@ class Playback:
             self.logs.info(f'play={play} read db test cases')
             # split env use db query config
             env_list = variables.pop('env', 'ppl,test').split(',')
-            domain, env, play = env_list[0], env_list[1], None
+            domain, env, cases_host, play = env_list[0], env_list[1], None, None
+            if len(env_list) >= 3: cases_host = env_list[2]
             if not tester: tester = self.db_select(domain=domain, env=env, conf_type=1)
             if not tester: return self.pytest_exit('Not ini or db env config')
             # get db testcases
-            all_data, paths, hosts = self.pytest_get_data(param, tester, domain)
+            all_data, paths, hosts = self.pytest_get_data(param, tester, domain, cases_host)
             # write environment.properties file
             txt = f'Tested={domain}-{env}\nHost={hosts}\nparam={dumps(param)}\n'
             txt += 'Author=PPL\nBlog=https://blog.csdn.net/qq_42675140'
